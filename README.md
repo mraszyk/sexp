@@ -3,11 +3,11 @@ Subnet Explorer
 
 Run
 ```
-cargo run --release -- [SUBNET-ID]
+cargo run --release -- ENDPOINT [SUBNET-ID]
 ```
 e.g.,
 ```
-$ cargo run --release -- tdb26-jop6k-aogll-7ltgs-eruif-6kk7m-qpktf-gdiqx-mxtrf-vb5e6-eqe
+$ cargo run --release -- https://ic0.app/ tdb26-jop6k-aogll-7ltgs-eruif-6kk7m-qpktf-gdiqx-mxtrf-vb5e6-eqe
 rwlgt-iiaaa-aaaaa-aaaaa-cai:
 Controllers: ["r7inp-6aaaa-aaaaa-aaabq-cai"]
 Module hash: 0xf09f723a33af8a5443e5a4ac4f8f42f00133e4bd4912c195fb7a0054d400c35b
