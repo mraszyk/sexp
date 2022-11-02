@@ -92,44 +92,51 @@ async fn main() {
             }
             let responses: Vec<Result<Certificate<'_>, AgentError>> = join_all(calls).await;
             for (response, (cans, (from, _))) in responses.iter().zip(canss.iter()) {
-                let response = response.as_ref().unwrap();
-                agent.verify(&response, *from).unwrap();
-                for c in cans.iter() {
-                    match lookup_value(&response, get_path(c, "controllers")) {
-                        Ok(ctrls) => {
-                            let cbor: Value = serde_cbor::from_slice(ctrls).unwrap();
-                            let ctrls = match cbor {
-                                Value::Array(vec) => vec
-                                    .into_iter()
-                                    .map(|elem: Value| match elem {
-                                        Value::Bytes(bytes) => {
-                                            Principal::try_from(&bytes).unwrap().to_text()
-                                        }
+                match response.as_ref() {
+                    Err(e) => {
+                        println!("{:?}", e);
+                    }
+                    Ok(response) => {
+                        agent.verify(&response, *from).unwrap();
+                        for c in cans.iter() {
+                            match lookup_value(&response, get_path(c, "controllers")) {
+                                Ok(ctrls) => {
+                                    let cbor: Value = serde_cbor::from_slice(ctrls).unwrap();
+                                    let ctrls = match cbor {
+                                        Value::Array(vec) => vec
+                                            .into_iter()
+                                            .map(|elem: Value| match elem {
+                                                Value::Bytes(bytes) => {
+                                                    Principal::try_from(&bytes).unwrap().to_text()
+                                                }
+                                                _ => {
+                                                    println!("Could not parse controllers!");
+                                                    "".to_string()
+                                                }
+                                            })
+                                            .collect::<Vec<String>>(),
                                         _ => {
-                                            assert!(false);
-                                            "".to_string()
+                                            println!("Could not parse controllers!");
+                                            Vec::new()
                                         }
-                                    })
-                                    .collect::<Vec<String>>(),
-                                _ => {
-                                    assert!(false);
-                                    Vec::new()
+                                    };
+                                    let hash =
+                                        match lookup_value(&response, get_path(c, "module_hash")) {
+                                            Ok(hash) => {
+                                                format!("0x{}", hex::encode(&hash))
+                                            }
+                                            Err(_) => "empty".to_string(),
+                                        };
+                                    println!(
+                                        "{}:\nControllers: {:?}\nModule hash: {}\n",
+                                        c.to_text(),
+                                        ctrls,
+                                        hash
+                                    );
                                 }
-                            };
-                            let hash = match lookup_value(&response, get_path(c, "module_hash")) {
-                                Ok(hash) => {
-                                    format!("0x{}", hex::encode(&hash))
-                                }
-                                Err(_) => "empty".to_string(),
-                            };
-                            println!(
-                                "{}:\nControllers: {:?}\nModule hash: {}\n",
-                                c.to_text(),
-                                ctrls,
-                                hash
-                            );
+                                Err(_) => {}
+                            }
                         }
-                        Err(_) => {}
                     }
                 }
             }
