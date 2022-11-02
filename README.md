@@ -50,3 +50,5 @@ Module hash: 0x4494aa777258f6263c150a909282e09777fe9ad3cda818835a7f17ab0da2ea36
 ```
 
 The explorer should take less than a minute to explore a subnet.
+
+Overall, it takes around 6 minutes to explore all subnets.
