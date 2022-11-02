@@ -68,11 +68,13 @@ async fn main() {
             let ranges: Vec<(Principal, Principal)> = serde_cbor::from_slice(ranges)
                 .map_err(AgentError::InvalidCborData)
                 .unwrap();
+            println!("ranges: {:?}", ranges.iter().map(|(a, b)| (a.to_string(), b.to_string())).collect::<Vec<_>>());
 
             let mut calls: Vec<Pin<Box<dyn Future<Output = Result<Certificate<'_>, AgentError>>>>> =
                 Vec::new();
-            let mut canss: Vec<(Vec<Principal>, (Principal, Principal))> = Vec::new();
+            let mut canss: Vec<(Vec<Principal>, Principal)> = Vec::new();
             for (from, to) in ranges.iter() {
+                let ecid = to;
                 let mut cur = from.clone();
                 let to = next_principal(to);
                 while cur != to {
@@ -85,19 +87,19 @@ async fn main() {
                     }
                     let paths: Vec<Vec<Label>> =
                         cans.iter().map(|c| get_paths(c)).flatten().collect();
-                    let response = agent.read_state_raw(paths, *from);
+                    let response = agent.read_state_raw(paths, *ecid);
                     calls.push(Box::pin(response));
-                    canss.push((cans, (*from, to)));
+                    canss.push((cans, *ecid));
                 }
             }
             let responses: Vec<Result<Certificate<'_>, AgentError>> = join_all(calls).await;
-            for (response, (cans, (from, _))) in responses.iter().zip(canss.iter()) {
+            for (response, (cans, ecid)) in responses.iter().zip(canss.iter()) {
                 match response.as_ref() {
                     Err(e) => {
                         println!("{:?}", e);
                     }
                     Ok(response) => {
-                        agent.verify(&response, *from).unwrap();
+                        agent.verify(&response, *ecid).unwrap();
                         for c in cans.iter() {
                             match lookup_value(&response, get_path(c, "controllers")) {
                                 Ok(ctrls) => {
