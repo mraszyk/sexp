@@ -13,8 +13,11 @@ async fn main() {
     };
 
     let agent = Agent::builder().with_url(url).build().unwrap();
-    //if url.starts_with("http://127.0.0.1:") || url.starts_with("http://localhost:") {
-    if !url.starts_with("https://ic0.app/") {
+    if !url.starts_with("https://ic0.app") && !url.starts_with("https://icp-api.io") {
+        println!("######################################################################");
+        println!("Fetching the root key from /api/v2/status! Do not use with IC mainnet!");
+        println!("######################################################################");
+        println!("\n\n");
         agent.fetch_root_key().await.unwrap();
     }
 
