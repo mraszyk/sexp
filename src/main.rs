@@ -13,7 +13,8 @@ async fn main() {
     };
 
     let agent = Agent::builder().with_url(url).build().unwrap();
-    if url.starts_with("http://127.0.0.1:") || url.starts_with("http://localhost:") {
+    //if url.starts_with("http://127.0.0.1:") || url.starts_with("http://localhost:") {
+    if !url.starts_with("https://ic0.app/") {
         agent.fetch_root_key().await.unwrap();
     }
 
